@@ -1,0 +1,5 @@
+mutagen==1.44.0
+PySide2==5.14.2
+PySimpleGUI==4.18.0
+PySimpleGUIQt==0.32.0
+shiboken2==5.14.2
