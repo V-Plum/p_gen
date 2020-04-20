@@ -15,15 +15,15 @@ def main():
     # Load saved settings, if available
     settings, files_list, missing_files = pg_actions.load_state()
     path = settings["path"]
-    pl1, pl2, pl3, pl4, pl5 = settings["pl1"], settings["pl2"], settings["pl3"], settings["pl4"], settings["pl5"]
+    pl = settings["pl"]
     if not files_list:
         files_list = dict()
 
     # Removing deleted files from playlist sections, updating playlist duration
     if len(missing_files) > 0:
         sg.popup(f"{len(missing_files)} file(s) were removed from disk since last run")
-        pl1, pl2, pl3, pl4, pl5 = pg_actions.remove_from_pls(missing_files, pl1, pl2, pl3, pl4, pl5)
-    pl_dur = pg_actions.calculate_playlist_duration(files_list, pl1, pl2, pl3, pl4, pl5)
+        pl = pg_actions.remove_from_pls(missing_files, pl)
+    pl_dur = pg_actions.calculate_playlist_duration(files_list, pl)
 
     # Calculate loaded files duration
     src_dur = 0
@@ -46,14 +46,14 @@ def main():
 
     # 1. Use this layout for PySimpleGUIQt
     for i in range(1, 6):
-        item = pg_ui.create_layout_item(i, locals()["pl"+str(i)])
+        item = pg_ui.create_layout_item(i, pl[i])
         playlists_layout.append(item)
     playlists_layout.append([sg.Text(f"Playlist duration: {pl_dur//60} min. {pl_dur-(pl_dur//60)*60} sec.",
                                      key="pld")])
 
     # 2. Switch to this layout to work wit PySimpleGUI instead of PySimpleGUIQt
     # for i in range(1, 6):
-    #     item = pg_ui.create_layout_item(i, locals()["pl"+str(i)], (40, 10))
+    #     item = pg_ui.create_layout_item(i, pl[i], (40, 10))
     #     playlists_layout.append(item)
     # playlists_layout.append([sg.Text(f"Playlist duration: {pl_dur//60} min. {pl_dur-(pl_dur//60)*60} sec.",
     #                                  key="pld")])
@@ -66,7 +66,7 @@ def main():
         [sg.Button("Add Folder"), sg.Button("Add File"), sg.VerticalSeparator(pad=None), sg.Button("Delete Files"),
          sg.Button("Clear Playlist"), sg.VerticalSeparator(pad=None), sg.Button("Generate Playlist"), sg.Button("Exit")]
     ]
-    window = sg.Window('Playlist Generator v0.1', layout)
+    window = sg.Window('Playlist Generator v0.2', layout)
 
     # Intercepting buttons events
     while True:
@@ -112,29 +112,31 @@ def main():
 
         # Save all playlist sections to one playlist.m3u file
         elif event == "Generate Playlist":
-            pg_actions.create_playlist(pl1+pl2+pl3+pl4+pl5, path)
-            sg.popup(f"{len(pl1+pl2+pl3+pl4+pl5)} files added to playlist.m3u at {path}")
+            pg_actions.create_playlist(pl[1]+pl[2]+pl[3]+pl[4]+pl[5], path)
+            sg.popup(f"{len(pl[1]+pl[2]+pl[3]+pl[4]+pl[5])} files added to playlist.m3u at {path}")
 
         # Remove items from playlist sections by index, update playlist duration:
         elif event in ("rm1", "rm2", "rm3", "rm4", "rm5"):
-            pl_num = "pl" + str(event[-1])
-            if values[pl_num]:
-                track = values[pl_num][0]
-                index = window[pl_num].GetIndexes()[0]
-                locals()[pl_num].pop(index)
+            pl_num = int(event[-1])
+            pl_name = "pl" + str(event[-1])
+            if values[pl_name]:
+                track = values[pl_name][0]
+                index = window[pl_name].GetIndexes()[0]
+                pl[pl_num].pop(index)
                 pl_dur -= files_list[track][0]
-                window[pl_num].update(locals()[pl_num])
+                window[pl_name].update(pl[pl_num])
                 window['pld'].update(f"Playlist duration: {pl_dur//60} min. {pl_dur-(pl_dur//60)*60} sec.")
 
         # Add items to playlist sections, update playlist duration:
         elif event in ("add1", "add2", "add3", "add4", "add5"):
             if values['-LIST-']:
-                pl_num = "pl" + str(event[-1])
+                pl_num = int(event[-1])
+                pl_name = "pl" + str(event[-1])
                 tracks = values['-LIST-']
                 for track in tracks:
-                    locals()[pl_num].append(track)
+                    pl[pl_num].append(track)
                     pl_dur += files_list[track][0]
-                window[pl_num].update(locals()[pl_num])
+                window[pl_name].update(pl[pl_num])
                 window['pld'].update(f"Playlist duration: {pl_dur // 60} min. {pl_dur - (pl_dur // 60) * 60} sec.")
 
         # Buttons UP and DOWN temporary doesn't work because of issue in .GetIndexes method in GUI framework
@@ -142,29 +144,30 @@ def main():
 
         # Move item UP in playlist section to sort manually. DOES NOT WORK WITH STANDARD PySimpleGUIQt
         elif event in ("up1", "up2", "up3", "up4", "up5"):
-            pl_num = "pl" + str(event[-1])
-            if values[pl_num]:
-                index = window[pl_num].GetIndexes()[0]
+            pl_num = int(event[-1])
+            pl_name = "pl" + str(event[-1])
+            if values[pl_name]:
+                index = window[pl_name].GetIndexes()[0]
                 if index > 0:
-                    locals()[pl_num][index], locals()[pl_num][index - 1] = locals()[pl_num][index - 1],\
-                                                                           locals()[pl_num][index]
-                    window[pl_num].update(locals()[pl_num])
+                    pl[pl_num][index], pl[pl_num][index - 1] = pl[pl_num][index - 1], pl[pl_num][index]
+                    window[pl_name].update(pl[pl_num])
 
         # Move item DOWN in playlist section to sort manually. DOES NOT WORK WITH STANDARD PySimpleGUIQt
         elif event in ("dn1", "dn2", "dn3", "dn4", "dn5"):
-            pl_num = "pl" + str(event[-1])
-            if values[pl_num]:
-                index = window[pl_num].GetIndexes()[0]
-                if index < len(locals()[pl_num])-1:
-                    locals()[pl_num][index], locals()[pl_num][index+1] = locals()[pl_num][index+1],\
-                                                                         locals()[pl_num][index]
-                    window[pl_num].update(locals()[pl_num])
+            pl_num = int(event[-1])
+            pl_name = "pl" + str(event[-1])
+            if values[pl_name]:
+                index = window[pl_name].GetIndexes()[0]
+                if index < len(pl[pl_num])-1:
+                    pl[pl_num][index], pl[pl_num][index+1] = pl[pl_num][index+1], pl[pl_num][index]
+                    window[pl_name].update(pl[pl_num])
 
         # Shuffle items in playlist sections:
         elif event in ("sh1", "sh2", "sh3", "sh4", "sh5"):
-            pl_num = "pl" + str(event[-1])
-            random.shuffle(locals()[pl_num])
-            window[pl_num].update(locals()[pl_num])
+            pl_num = int(event[-1])
+            pl_name = "pl" + str(event[-1])
+            random.shuffle(pl[pl_num])
+            window[pl_name].update(pl[pl_num])
 
         # Remove items from source section, optionally delete files:
         # 1. Popup if no files selected
@@ -176,13 +179,13 @@ def main():
             tracks = values['-LIST-']
             decision = sg.popup_yes_no(f"Remove {len(tracks)} files from working list?")
             if decision == "Yes":
-                pl1, pl2, pl3, pl4, pl5 = pg_actions.remove_from_pls(tracks, pl1, pl2, pl3, pl4, pl5)
-                window['pl1'].update(pl1)
-                window['pl2'].update(pl2)
-                window['pl3'].update(pl3)
-                window['pl4'].update(pl4)
-                window['pl5'].update(pl5)
-                pl_dur = pg_actions.calculate_playlist_duration(files_list, pl1, pl2, pl3, pl4, pl5)
+                pl = pg_actions.remove_from_pls(tracks, pl)
+                window['pl1'].update(pl[1])
+                window['pl2'].update(pl[2])
+                window['pl3'].update(pl[3])
+                window['pl4'].update(pl[4])
+                window['pl5'].update(pl[5])
+                pl_dur = pg_actions.calculate_playlist_duration(files_list, pl)
                 window['pld'].update(f"Playlist duration: {pl_dur // 60} min. {pl_dur - (pl_dur // 60) * 60} sec.")
                 decision = sg.popup_yes_no(f"Delete files from disk? This cannot be undone!")
                 if decision == "Yes":
@@ -202,21 +205,21 @@ def main():
         elif event == "Clear Playlist":
             decision = sg.popup_yes_no("Are you sure you want to clear playlist?\nFiles will not be deleted")
             if decision == "Yes":
-                pl1, pl2, pl3, pl4, pl5 = [], [], [], [], []
-                settings = {"path": path, "pl1": pl1, "pl2": pl2, "pl3": pl3, "pl4": pl4, "pl5": pl5}
+                pl = [0, [], [], [], [], []]
+                settings = {"path": path, "pl": [0, [], [], [], [], []]}
                 pg_actions.save_state(files_list, settings)
-                window['pl1'].update(pl1)
-                window['pl2'].update(pl2)
-                window['pl3'].update(pl3)
-                window['pl4'].update(pl4)
-                window['pl5'].update(pl5)
-                pl_dur = pg_actions.calculate_playlist_duration(files_list, pl1, pl2, pl3, pl4, pl5)
+                window['pl1'].update(pl[1])
+                window['pl2'].update(pl[2])
+                window['pl3'].update(pl[3])
+                window['pl4'].update(pl[4])
+                window['pl5'].update(pl[5])
+                pl_dur = pg_actions.calculate_playlist_duration(files_list, pl)
                 window['pld'].update(f"Playlist duration: {pl_dur // 60} min. {pl_dur - (pl_dur // 60) * 60} sec.")
             else:
                 continue
 
         # Save settings and list of files after each event
-        settings = {"path": path, "pl1": pl1, "pl2": pl2, "pl3": pl3, "pl4": pl4, "pl5": pl5}
+        settings = {"path": path, "pl": pl}
         pg_actions.save_state(files_list, settings)
     window.close()
 

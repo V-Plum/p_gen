@@ -63,7 +63,7 @@ def create_layout_item(num, lst, size=(40, 4.38)):
 
 def about_window():
     # Simple popup instead of window is temporary
-    sg.popup("Playlist Generator v0.1\nby Vadym Slyva\n2020")
+    sg.popup("Playlist Generator v0.2\nby Vadym Slyva\n2020")
 
 
 def main():

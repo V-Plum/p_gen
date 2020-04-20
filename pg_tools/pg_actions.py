@@ -26,9 +26,9 @@ def load_state():
             try:
                 settings = json.load(f)
             except json.JSONDecodeError:
-                settings = dict({"path": "./temp", "pl1": [], "pl2": [], "pl3": [], "pl4": [], "pl5": []})
+                settings = dict({"path": "./temp", "pl": [0, [], [], [], [], []]})
     else:
-        settings = dict({"path": "./temp", "pl1": [], "pl2": [], "pl3": [], "pl4": [], "pl5": []})
+        settings = dict({"path": "./temp", "pl": [0, [], [], [], [], []]})
     path = settings["path"]
     if os.path.isfile("files.json"):
         with open("files.json", "r") as f:
@@ -99,40 +99,40 @@ def delete_files(working_list_of_files, files_to_delete, path=".", delete_file=T
 
 
 # Calculate duration of all tracks in all playlist sections
-def calculate_playlist_duration(working_list_of_files, pl1, pl2, pl3, pl4, pl5):
+def calculate_playlist_duration(working_list_of_files, pl):
     duration = 0
-    for track in pl1:
+    for track in pl[1]:
         duration += working_list_of_files[track][0]
-    for track in pl2:
+    for track in pl[2]:
         duration += working_list_of_files[track][0]
-    for track in pl3:
+    for track in pl[3]:
         duration += working_list_of_files[track][0]
-    for track in pl4:
+    for track in pl[4]:
         duration += working_list_of_files[track][0]
-    for track in pl5:
+    for track in pl[5]:
         duration += working_list_of_files[track][0]
     return duration
 
 
 # Remove track rom all playlist sections
-def remove_from_pls(del_files, pl1, pl2, pl3, pl4, pl5):
+def remove_from_pls(del_files, pl):
     for file in del_files:
-        for i in range(len(pl1)):
-            if file in pl1:
-                pl1.remove(file)
-        for i in range(len(pl2)):
-            if file in pl2:
-                pl2.remove(file)
-        for i in range(len(pl3)):
-            if file in pl3:
-                pl3.remove(file)
-        for i in range(len(pl4)):
-            if file in pl4:
-                pl4.remove(file)
-        for i in range(len(pl5)):
-            if file in pl4:
-                pl4.remove(file)
-    return pl1, pl2, pl3, pl4, pl5
+        for i in range(len(pl[1])):
+            if file in pl[1]:
+                pl[1].remove(file)
+        for i in range(len(pl[2])):
+            if file in pl[2]:
+                pl[2].remove(file)
+        for i in range(len(pl[3])):
+            if file in pl[3]:
+                pl[3].remove(file)
+        for i in range(len(pl[4])):
+            if file in pl[4]:
+                pl[4].remove(file)
+        for i in range(len(pl[5])):
+            if file in pl[5]:
+                pl[5].remove(file)
+    return pl
 
 
 # Generate playlist.m3u file from all working playlist sections. Save to temp folder if no path received
