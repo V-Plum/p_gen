@@ -2,14 +2,29 @@
 from pg_tools import PySimpleGUIQt_my as sg
 
 
-def open_folder_dialog(prompt, path):
-    folder = sg.popup_get_folder(prompt,
-                                 title="Select folder",
-                                 default_path="",
-                                 no_window=False,
-                                 initial_folder=path,
-                                 keep_on_top=False)
-    return folder
+def open_folder_dialog(path):
+    layout = [
+        [sg.Text("Add files to working folder:")],
+        [sg.Text('Source Folder', size=(12, 1)), sg.InputText(size=(35, 1)),
+         sg.FolderBrowse(initial_folder=path, size=(10, 1))],
+        [sg.Text('Destination Folder ', size=(12, 1)), sg.InputText(size=(35, 1)),
+         sg.FolderBrowse(initial_folder=path, size=(10, 1))],
+        [sg.Submit("Copy", size=(12, 1)), sg.Cancel(size=(12, 1))]
+    ]
+    window = sg.Window('Add files from folder', layout)
+    while True:
+        event, values = window.read()
+        if event is None or event == "Cancel":
+            window.Close()
+            return None, None
+        elif event == "Copy":
+            if values[0] and values[1]:
+                window.Close()
+                return values[0], values[1]
+            elif not values[0]:
+                sg.Popup("Source folder is not selected!")
+            elif not values[1]:
+                sg.Popup("Destination folder is not selected!")
 
 
 def open_file_dialog(path):

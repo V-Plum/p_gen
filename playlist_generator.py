@@ -80,23 +80,17 @@ def main():
 
         # Add files from a source folder
         elif event == "Add Folder":
-            src = pg_ui.open_folder_dialog("Select source folder", path)
-            if not src:
-                sg.popup("Source path cannot be empty")
-                continue
-            path1 = pg_ui.open_folder_dialog("Select destination folder", path)
-            if not path1:
-                sg.popup("Destination path cannot be empty")
-                continue
-            path = path1
-            new_files_list = pg_actions.load_files_from_dir(src, path)
-            files_list.update(new_files_list)
-            file_names = sorted(list(files_list.keys()))
-            src_dur = 0
-            for key in files_list:
-                src_dur += files_list[key][0]
-            window['-LIST-'].update(file_names)
-            window['td'].update(f"Total files duration: {src_dur // 60} min. {src_dur - (src_dur // 60) * 60} sec.")
+            src, path1 = pg_ui.open_folder_dialog(path)
+            if src and path1:
+                path = path1
+                new_files_list = pg_actions.load_files_from_dir(src, path)
+                files_list.update(new_files_list)
+                file_names = sorted(list(files_list.keys()))
+                src_dur = 0
+                for key in files_list:
+                    src_dur += files_list[key][0]
+                window['-LIST-'].update(file_names)
+                window['td'].update(f"Total files duration: {src_dur // 60} min. {src_dur - (src_dur // 60) * 60} sec.")
 
         # Add single file
         elif event == "Add File":

@@ -23,13 +23,19 @@ def load_state():
     missing_files = list()
     if os.path.isfile("settings.json"):
         with open("settings.json", "r") as f:
-            settings = json.load(f)
+            try:
+                settings = json.load(f)
+            except json.JSONDecodeError:
+                settings = dict({"path": "./temp", "pl1": [], "pl2": [], "pl3": [], "pl4": [], "pl5": []})
     else:
         settings = dict({"path": "./temp", "pl1": [], "pl2": [], "pl3": [], "pl4": [], "pl5": []})
     path = settings["path"]
     if os.path.isfile("files.json"):
         with open("files.json", "r") as f:
-            files = json.load(f)
+            try:
+                files = json.load(f)
+            except json.JSONDecodeError:
+                files = dict()
         for key in files:
             full_file_name = os.path.join(path, key)
             if not os.path.isfile(full_file_name):
@@ -64,7 +70,6 @@ def load_files_from_dir(src, destination="./temp/"):
 
 # Copy single MP3 file from source folder to working folder and add files into GUI
 def load_single_file(src, destination="./temp/"):
-    # path = os.path.dirname(src)
     if not os.path.isdir(destination):
         os.mkdir(destination)
     if src.lower().endswith('.mp3'):
